@@ -1,8 +1,7 @@
-//loads a vocabulary, and a image. Extracts image feaures and then  compute the bow of the image
+// loads a vocabulary, and a image. Extracts image feaures and then  compute the bow of the image
 #include "fbow.h"
 #include <iostream>
 #include <map>
-using namespace std;
 
 // OpenCV
 #include <opencv2/core/core.hpp>
@@ -13,72 +12,106 @@ using namespace std;
 #include <opencv2/xfeatures2d.hpp>
 #endif
 
-
 #include <chrono>
-class CmdLineParser { int argc; char **argv; public: CmdLineParser(int _argc, char **_argv) :argc(_argc), argv(_argv) {}  bool operator[] (string param) { int idx = -1;  for (int i = 0; i<argc && idx == -1; i++) if (string(argv[i]) == param) idx = i;    return (idx != -1); } string operator()(string param, string defvalue = "-1") { int idx = -1;    for (int i = 0; i<argc && idx == -1; i++) if (string(argv[i]) == param) idx = i; if (idx == -1) return defvalue;   else  return (argv[idx + 1]); } };
+class CmdLineParser
+{
+    int argc;
+    char **argv;
 
-vector< cv::Mat  >  loadFeatures(std::vector<string> path_to_images, string descriptor = "")  {
-    //select detector
+public:
+    CmdLineParser(int _argc, char **_argv) : argc(_argc), argv(_argv) {}
+    bool operator[](std::string param)
+    {
+        int idx = -1;
+        for (int i = 0; i < argc && idx == -1; i++)
+            if (std::string(argv[i]) == param)
+                idx = i;
+        return (idx != -1);
+    }
+    std::string operator()(std::string param, std::string defvalue = "-1")
+    {
+        int idx = -1;
+        for (int i = 0; i < argc && idx == -1; i++)
+            if (std::string(argv[i]) == param)
+                idx = i;
+        if (idx == -1)
+            return defvalue;
+        else
+            return (argv[idx + 1]);
+    }
+};
+
+std::vector<cv::Mat> loadFeatures(std::vector<std::string> path_to_images, std::string descriptor = "")
+{
+    // select detector
     cv::Ptr<cv::Feature2D> fdetector;
-    if (descriptor == "orb")        fdetector = cv::ORB::create(2000);
-    else if (descriptor == "brisk") fdetector = cv::BRISK::create();
+    if (descriptor == "orb")
+        fdetector = cv::ORB::create(2000);
+    else if (descriptor == "brisk")
+        fdetector = cv::BRISK::create();
 #ifdef OPENCV_VERSION_3
-    else if (descriptor == "akaze") fdetector = cv::AKAZE::create(cv::AKAZE::DESCRIPTOR_MLDB, 0, 3, 1e-4);
+    else if (descriptor == "akaze")
+        fdetector = cv::AKAZE::create(cv::AKAZE::DESCRIPTOR_MLDB, 0, 3, 1e-4f);
 #endif
 #ifdef USE_CONTRIB
-    else if (descriptor == "surf")  fdetector = cv::xfeatures2d::SURF::create(15, 4, 2);
+    else if (descriptor == "surf")
+        fdetector = cv::xfeatures2d::SURF::create(15, 4, 2);
 #endif
 
-    else throw std::runtime_error("Invalid descriptor");
+    else
+        throw std::runtime_error("Invalid descriptor");
     assert(!descriptor.empty());
-    vector<cv::Mat>    features;
+    std::vector<cv::Mat> features;
 
-
-    cout << "Extracting   features..." << endl;
+    std::cout << "Extracting   features..." << std::endl;
     for (size_t i = 0; i < path_to_images.size(); ++i)
     {
-        vector<cv::KeyPoint> keypoints;
+        std::vector<cv::KeyPoint> keypoints;
         cv::Mat descriptors;
-        cout << "reading image: " << path_to_images[i] << endl;
+        std::cout << "reading image: " << path_to_images[i] << std::endl;
         cv::Mat image = cv::imread(path_to_images[i], 0);
-        if (image.empty())throw std::runtime_error("Could not open image" + path_to_images[i]);
-        cout << "extracting features" << endl;
+        if (image.empty())
+            throw std::runtime_error("Could not open image" + path_to_images[i]);
+        std::cout << "extracting features" << std::endl;
         fdetector->detectAndCompute(image, cv::Mat(), keypoints, descriptors);
         features.push_back(descriptors);
-        cout << "done detecting features" << endl;
+        std::cout << "done detecting features" << std::endl;
     }
     return features;
 }
 
-int main(int argc, char **argv) {
+int main(int argc, char **argv)
+{
     CmdLineParser cml(argc, argv);
-    try {
-        if (argc<3 || cml["-h"]) throw std::runtime_error("Usage: fbow   image [descriptor]");
+    try
+    {
+        if (argc < 3 || cml["-h"])
+            throw std::runtime_error("Usage: fbow   image [descriptor]");
         fbow::Vocabulary voc;
         voc.readFromFile(argv[1]);
 
-        string desc_name = voc.getDescName();
-        cout << "voc desc name=" << desc_name << endl;
-        vector<vector<cv::Mat> > features(argc - 3);
-        vector<map<double, int> > scores;
-        vector<string > filenames(argc - 3);
-        string outDir = argv[2];
+        std::string desc_name = voc.getDescName();
+        std::cout << "voc desc name=" << desc_name << std::endl;
+        std::vector<std::vector<cv::Mat>> features(argc - 3);
+        std::vector<std::map<double, int>> scores;
+        std::vector<std::string> filenames(argc - 3);
+        std::string outDir = argv[2];
         for (int i = 3; i < argc; ++i)
         {
-            filenames[i - 3] = { argv[i] };
+            filenames[i - 3] = {argv[i]};
         }
-        for (size_t i = 0; i<filenames.size(); ++i)
-            features[i] = loadFeatures({ filenames[i] }, desc_name);
+        for (size_t i = 0; i < filenames.size(); ++i)
+            features[i] = loadFeatures({filenames[i]}, desc_name);
 
         fbow::fBow vv, vv2;
-        int avgScore = 0;
+        double avgScore = 0;
         int counter = 0;
         auto t_start = std::chrono::high_resolution_clock::now();
-        for (size_t i = 0; i<features.size(); ++i)
+        for (size_t i = 0; i < features.size(); ++i)
         {
             vv = voc.transform(features[i][0]);
-            map<double, int> score;
-            for (size_t j = 0; j<features.size(); ++j)
+            std::map<double, int> score;
+            for (size_t j = 0; j < features.size(); ++j)
             {
 
                 vv2 = voc.transform(features[j][0]);
@@ -86,7 +119,7 @@ int main(int argc, char **argv) {
                 counter++;
                 //		if(score1 > 0.01f)
                 {
-                    score.insert(pair<double, int>(score1, j));
+                    score.insert(std::pair<double, int>(score1, (int)j));
                 }
                 printf("%f, ", score1);
             }
@@ -113,8 +146,8 @@ int main(int argc, char **argv) {
             command += " ";
             command += str.str();
             command += "/source.JPG";
-            
-        system((string("cd ") + outDir).c_str());
+
+            system((std::string("cd ") + outDir).c_str());
             system(command.c_str());
             j = 0;
             for (auto it = scores[i].begin(); it != scores[i].end(); it++)
@@ -132,18 +165,17 @@ int main(int argc, char **argv) {
                 command += ".JPG";
                 system(command.c_str());
             }
-
         }
         /*
         {
-        cout<<vv.begin()->first<<" "<<vv.begin()->second<<endl;
-        cout<<vv.rbegin()->first<<" "<<vv.rbegin()->second<<endl;
+        std::cout<<vv.begin()->first<<" "<<vv.begin()->second<<std::endl;
+        std::cout<<vv.rbegin()->first<<" "<<vv.rbegin()->second<<std::endl;
         }
         */
         std::cout << "avg score: " << avgScore << " # of features: " << features.size() << std::endl;
     }
-    catch (std::exception &ex) {
-        cerr << ex.what() << endl;
+    catch (std::exception &ex)
+    {
+        std::cerr << ex.what() << std::endl;
     }
-
 }

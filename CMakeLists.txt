@@ -13,6 +13,9 @@ set(PROJECT_SOVERSION "${PROJECT_VERSION_MAJOR}.${PROJECT_VERSION_MINOR}")
 
 set(CMAKE_MACOSX_RPATH 1)
 
+set(CMAKE_CXX_STANDARD 17)
+set(CMAKE_CXX_STANDARD_REQUIRED ON)
+
 #------------------------------------------------------
 # Build type
 #------------------------------------------------------

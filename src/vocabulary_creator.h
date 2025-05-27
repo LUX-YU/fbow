@@ -43,8 +43,9 @@ public:
 private:
     Params _params;
     struct feature_info{
-        feature_info(uint32_t MIDX,uint32_t FIDX):midx(MIDX),fidx(FIDX){}
-        uint32_t midx,fidx;//matrix feature into the vector of matrices and fidx feature into the matrix
+        feature_info(size_t MIDX, size_t FIDX):midx(MIDX),fidx(FIDX){}
+        size_t midx;//matrix feature into the vector of matrices and fidx feature into the matrix
+        size_t fidx;
         float m_Dist;
         uint32_t parent=0;
     };
@@ -57,18 +58,26 @@ private:
             for(auto &m:*features) _size+=m.rows;
             fInfo.clear();
             fInfo.reserve(_size);
-            for(size_t midx=0;midx<features->size();midx++){
+            for(size_t midx=0; midx<features->size(); midx++){
                 auto nrows=features->at(midx).rows;
                 for(int i=0;i<nrows;i++)
-                    fInfo.push_back(feature_info(midx,i));
+                    fInfo.push_back(feature_info(midx, i));
             }
         }
         size_t size()const {return fInfo.size();}
         template<typename T>
-        inline T*getFeaturePtr(uint32_t i){const auto &idx=fInfo[i]; return features->at(idx.midx).ptr<T>(idx.fidx);}
-        inline cv::Mat operator[](uint32_t i){const auto &idx=fInfo[i]; return features->at(idx.midx).row(idx.fidx);}
-        inline feature_info & operator()(uint32_t i){ return fInfo[i];}
+        inline T*getFeaturePtr(uint32_t i)
+        {
+            const auto &idx=fInfo[i]; 
+            return features->at(idx.midx).ptr<T>(idx.fidx);
+        }
 
+        inline cv::Mat operator[](uint32_t i){
+            const auto &idx=fInfo[i]; 
+            return features->at(idx.midx).row((int)idx.fidx);
+        }
+
+        inline feature_info & operator()(uint32_t i){ return fInfo[i];}
 
         std::vector<cv::Mat> *features;
         std::vector<feature_info> fInfo;
@@ -194,9 +203,9 @@ private:
     };
 
     using vector_sptr=std::shared_ptr< std::vector<uint32_t>>;
-    struct ThreadSafeMap{
-
-        void create(uint32_t parent,uint32_t reserved_size){
+    struct ThreadSafeMap
+    {
+        void create(uint32_t parent, size_t reserved_size){
             std::unique_lock<std::mutex> mlock(mutex_);
             if(!parents_idx.count(parent)){
                 parents_idx[parent]=std::make_shared<std::vector<uint32_t>>();
@@ -208,7 +217,6 @@ private:
             std::unique_lock<std::mutex> mlock(mutex_);
             assert(parents_idx.count(parent));
             parents_idx.erase(parent);
-
         }
 
         vector_sptr operator[](uint32_t parent){
@@ -223,13 +231,11 @@ private:
         }
         std::mutex mutex_;
         std::map<uint32_t,vector_sptr> parents_idx;
-
     };
-
 
     Tree TheTree;
 
-    int _descCols,_descType,_descNBytes;
+    size_t _descCols,_descType,_descNBytes;
     FeatureInfo _features;
     void assignToClusters(const std::vector<uint32_t> &findices, const std::vector<cv::Mat> &center_features, std::vector<vector_sptr> &assigments, bool omp=false);
     std::vector<cv::Mat>  recomputeCenters(const std::vector<vector_sptr> &assigments, bool omp=false);

@@ -198,7 +198,7 @@ void FORB::toMat32F(const std::vector<TDescriptor> &descriptors,
 
     const size_t N = descriptors.size();
 
-    mat.create(N, FORB::L()*8, CV_32F);
+    mat.create((int)N, FORB::L()*8, CV_32F);
     float *p = mat.ptr<float>();
 
     for(size_t i = 0; i < N; ++i)
@@ -208,14 +208,14 @@ void FORB::toMat32F(const std::vector<TDescriptor> &descriptors,
 
         for(int j = 0; j < C; ++j, p += 8)
         {
-            p[0] = (desc[j] & (1 << 7) ? 1 : 0);
-            p[1] = (desc[j] & (1 << 6) ? 1 : 0);
-            p[2] = (desc[j] & (1 << 5) ? 1 : 0);
-            p[3] = (desc[j] & (1 << 4) ? 1 : 0);
-            p[4] = (desc[j] & (1 << 3) ? 1 : 0);
-            p[5] = (desc[j] & (1 << 2) ? 1 : 0);
-            p[6] = (desc[j] & (1 << 1) ? 1 : 0);
-            p[7] = desc[j] & (1);
+            p[0] = static_cast<float>((desc[j] & (1 << 7) ? 1 : 0));
+            p[1] = static_cast<float>((desc[j] & (1 << 6) ? 1 : 0));
+            p[2] = static_cast<float>((desc[j] & (1 << 5) ? 1 : 0));
+            p[3] = static_cast<float>((desc[j] & (1 << 4) ? 1 : 0));
+            p[4] = static_cast<float>((desc[j] & (1 << 3) ? 1 : 0));
+            p[5] = static_cast<float>((desc[j] & (1 << 2) ? 1 : 0));
+            p[6] = static_cast<float>((desc[j] & (1 << 1) ? 1 : 0));
+            p[7] = static_cast<float>(desc[j] & (1));
         }
     }
 }
@@ -225,7 +225,7 @@ void FORB::toMat32F(const std::vector<TDescriptor> &descriptors,
 void FORB::toMat8U(const std::vector<TDescriptor> &descriptors,
                    cv::Mat &mat)
 {
-    mat.create(descriptors.size(), 32, CV_8U);
+    mat.create((int)descriptors.size(), 32, CV_8U);
 
     unsigned char *p = mat.ptr<unsigned char>();
 

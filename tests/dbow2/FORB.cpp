@@ -10,14 +10,12 @@
  */
 
  
-#include <vector>
+#include <std::vector>
 #include <string>
 #include <sstream>
 #include <stdint-gcc.h>
 
 #include "FORB.h"
-
-using namespace std;
 
 namespace DBoW2 {
 

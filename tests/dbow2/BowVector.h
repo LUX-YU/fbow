@@ -2,13 +2,13 @@
  * File: BowVector.h
  * Date: March 2011
  * Author: Dorian Galvez-Lopez
- * Description: bag of words vector
+ * Description: bag of words std::vector
  * License: see the LICENSE.txt file
  *
  */
 
-#ifndef __D_T_BOW_VECTOR__
-#define __D_T_BOW_VECTOR__
+#ifndef __D_T_BOW_vector__
+#define __D_T_BOW_vector__
 
 #include <iostream>
 #include <map>
@@ -17,13 +17,13 @@
 namespace DBoW2 {
 
 /// Id of words
-typedef unsigned int WordId;
+typedef size_t WordId;
 
 /// Value of a word
 typedef double WordValue;
 
 /// Id of nodes in the vocabulary treee
-typedef unsigned int NodeId;
+typedef size_t NodeId;
 
 /// L-norms for normalization
 enum LNorm
@@ -52,9 +52,8 @@ enum ScoringType
     DOT_PRODUCT,
 };
 
-/// Vector of words to represent images
-class BowVector: 
-        public std::map<WordId, WordValue>
+/// vector of words to represent images
+class BowVector : public std::map<WordId, WordValue>
 {
 public:
 
@@ -69,7 +68,7 @@ public:
     ~BowVector(void){}
 
     /**
-     * Adds a value to a word value existing in the vector, or creates a new
+     * Adds a value to a word value existing in the std::vector, or creates a new
      * word with the given value
      * @param id word id to look for
      * @param v value to create the word with, or to add to existing word
@@ -88,7 +87,7 @@ public:
     }
 
     /**
-     * Adds a word with a value to the vector only if this does not exist yet
+     * Adds a word with a value to the std::vector only if this does not exist yet
      * @param id word id to look for
      * @param v value to give to the word if this does not exist
      */
@@ -103,7 +102,7 @@ public:
     }
 
     /**
-     * L1-Normalizes the values in the vector
+     * L1-Normalizes the values in the std::vector
      * @param norm_type norm used
      */
     void normalize(LNorm norm_type)
@@ -132,16 +131,16 @@ public:
 
 
     /**
-     * Prints the content of the bow vector
+     * Prints the content of the bow std::vector
      * @param out stream
      * @param v
      */
     friend std::ostream& operator<<(std::ostream &out, const BowVector &v)
     {
         BowVector::const_iterator vit;
-        std::vector<unsigned int>::const_iterator iit;
-        unsigned int i = 0;
-        const unsigned int N = v.size();
+        std::vector<size_t>::const_iterator iit;
+        size_t i = 0;
+        size_t N = v.size();
         for(vit = v.begin(); vit != v.end(); ++vit, ++i)
         {
             out << "<" << vit->first << ", " << vit->second << ">";
@@ -152,7 +151,7 @@ public:
     }
 
     /**
-     * Saves the bow vector as a vector in a matlab file
+     * Saves the bow std::vector as a std::vector in a matlab file
      * @param filename
      * @param W number of words in the vocabulary
      */

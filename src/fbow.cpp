@@ -164,7 +164,6 @@ void Vocabulary::saveToFile(const std::string &filepath){
 	std::ofstream file(filepath, std::ios::binary);
     if (!file) throw std::runtime_error("Vocabulary::saveToFile could not open:"+filepath);
     toStream(file);
-
 }
 
 ///save/load to binary streams
@@ -259,7 +258,7 @@ uint64_t Vocabulary::hash()const{
     return seed;
 }
 void fBow::toStream(std::ostream &str) const   {
-    uint32_t _size=size();
+    size_t _size = size();
     str.write((char*)&_size,sizeof(_size));
     for(const auto & e:*this)
         str.write((char*)&e,sizeof(e));
@@ -276,12 +275,12 @@ void fBow::fromStream(std::istream &str)    {
 }
 
 void fBow2::toStream(std::ostream &str) const   {
-    uint32_t _size=size();
+    size_t _size = size();
     str.write((char*)&_size,sizeof(_size));
     for(const auto &e:*this){
         str.write((char*)&e.first,sizeof(e.first));
         //now the vector
-        _size=e.second.size();
+        _size = e.second.size();
         str.write((char*)&_size,sizeof(_size));
         str.write((char*)&e.second[0],sizeof(e.second[0])*e.second.size());
     }
